@@ -1,0 +1,15 @@
+node_modules/
+.env
+yarn-error.log
+coverage
+coverage.json
+gasReport.txt
+bin
+typechain/
+abi
+build/
+*.DS_Store
+
+#Hardhat files
+cache
+artifacts
