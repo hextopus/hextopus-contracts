@@ -3,7 +3,7 @@
 [![image](https://user-images.githubusercontent.com/72462227/195661104-ad822246-bf6d-4220-9d22-5e174c715e06.png)](https://hextopus.app)
 
 <p>
-    Hextopus is a referal marketing platform establishing sustainable growth and activation of ecosystem, enabling users to earn real yield for their influence, and projects to promote based on user’s influence. No more waiting for Airdrops or Giveaways – get rewards instantly by continuously sharing campaigns with frens.
+    Hextopus is a referal quest platform establishing sustainable growth and activation of ecosystem, enabling users to earn real yield for their influence, and projects to promote based on user’s influence. No more waiting for Airdrops or Giveaways – get rewards instantly by continuously sharing campaigns with frens.
 </p>
   
   <div align="center">
