@@ -35,5 +35,5 @@ interface IBaseCampaign {
     function initialize(bytes memory, bytes memory) external;
 
     function participate(address, address, bytes32, bytes memory) external;
-    function claimAll(address) external returns(uint256);
+    function claim(address) external returns(uint256);
 }

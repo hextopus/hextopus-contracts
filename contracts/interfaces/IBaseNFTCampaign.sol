@@ -29,4 +29,5 @@ interface IBaseNFTCampaign {
     function indirectReferralHxtoAmount() external view returns (uint256);
 
     function initialize(bytes memory, bytes memory) external;
+    function claim(address) external returns(uint256);
 }

@@ -12,6 +12,7 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
     const esHXTO = await deployContract("esHXTO", ["esHXTO", "esHXTO"]);
     const staker = await deployContract("Staker", [hxto.address]);
     const capReader = await deployContract("CapReader", [esHXTO.address, hxto.address, staker.address]);
+    const NFTCapReader = await deployContract("NFTCapReader",[]);
     const vester = await deployContract("Vester", [esHXTO.address, hxto.address]);
     const campaignReader = await deployContract("CampaignReader", []);
     const timelock = await deployContract("Timelock", [0]);
@@ -44,7 +45,7 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
         { type: 'address', value: deployer.address }, // owner
         { type: 'bool', value: false }, // isWhiteListCampaign
         { type: 'uint256', value: 0 }, // minimumRequirement
-        { type: 'address', value: hre.ethers.constants.AddressZero}, // SBT
+        { type: 'address', value: NFTCapReader.address}, // NFTCapReader
     ];
     const campaignTokenConfig = [
         { type: 'address', value: hxto.address }, // hxto
@@ -100,19 +101,19 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
     await tx.wait();
 
     // esHxto
-    tx = await capReader.setStakeAdditionalCap(0, 1);
+    tx = await capReader.setStakeAdditionalCap(0, 5000);
     await tx.wait();
 
     // 7 days stake
-    tx = await capReader.setStakeAdditionalCap(1, 100);
+    tx = await capReader.setStakeAdditionalCap(1, 1000);
     await tx.wait();
 
     // 30 days stake
-    tx = await capReader.setStakeAdditionalCap(2, 500);
+    tx = await capReader.setStakeAdditionalCap(2, 5000);
     await tx.wait();
 
     // 90 days stake
-    tx = await capReader.setStakeAdditionalCap(3, 1600);
+    tx = await capReader.setStakeAdditionalCap(3, 16000);
     await tx.wait();
 
     // Reader setter
@@ -150,7 +151,7 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
         { type: 'address', value: deployer.address }, // owner
         { type: 'bool', value: false }, // isWhiteListCampaign
         { type: 'uint256', value: 0 }, // minimumRequirement
-        { type: 'address', value: hre.ethers.constants.AddressZero}, // SBT
+        { type: 'address', value: NFTCapReader.address}, // NFTCampaignReader
 
     ];
     const NFTCampaignTokenConfig = [
@@ -175,10 +176,17 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
     tx = await baseNFT.addMinter(NFTCampaign.address);
     await tx.wait();
 
+    tx = await baseNFT.addMinter(deployer.address);
+    await tx.wait();
+
     tx = await baseNFT.setURI("https://www.hextopus.app/ipfs/Qmc1expD7te1rybMgVHpyj4PwEMqUcosjbHo6w82QNz9PT");
     await tx.wait();
 
     tx = await baseNFT.setTransferable(false);
+    await tx.wait();
+
+    // NFT cap reader setter
+    tx = await NFTCapReader.setNFTUtil(baseNFT.address, 3);
     await tx.wait();
 
     // NFT campaign token setter
@@ -229,6 +237,7 @@ export const hextopusProtocolFixture = deployments.createFixture(async hre => {
         baseNFT,
         NFTSocialAction,
         NFTCampaign,
-        NFTCampaignReader
+        NFTCampaignReader,
+        NFTCapReader
     }
 })

@@ -21,13 +21,15 @@ describe("Campaign", async () => {
     let timelock;
     let socialAction;
     let campaign;
+    let baseNFT;
+    let NFTCapReader;
 
     const defaultLinkBytes = "0x44454641554c5400000000000000000000000000000000000000000000000000";
 
     before(async () => {
         [deployer, user1, user2, user3, user4, user5] = await hre.ethers.getSigners();
 
-        ({ hxto, esHXTO, staker, campaignReader, timelock, socialAction, campaign } = await hextopusProtocolFixture());
+        ({ hxto, esHXTO, staker, campaignReader, timelock, socialAction, campaign, baseNFT, NFTCapReader } = await hextopusProtocolFixture());
 
         // Campaign setting
         await timelock.setCampaignManager(campaign.address, deployer.address, true);
@@ -147,7 +149,27 @@ describe("Campaign", async () => {
         expect(BigInt(await esHXTO.balanceOf(deployer.address)).toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(2)).toString());
     });
 
+    it("checks root user's claim amount with NFT", async () => {
+        await baseNFT.mint(deployer.address);
+
+        await campaign.claim(deployer.address);
+
+        // Root user info check
+        const rootUserInfo = await campaign.userInfo(deployer.address);
+
+        expect(rootUserInfo.referralHxtoAmount.toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+        expect(rootUserInfo.referralHxtoDebt.toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+
+        expect(BigInt(await esHXTO.balanceOf(deployer.address)).toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+    });
+
     it("checks root user's additional cap by staking", async () => {
+        await NFTCapReader.editNFTUtil(0, 0);
+
+        await socialAction.setFulfilled(user4.address);
+
+        await campaign.participate(deployer.address, user4.address, defaultLinkBytes, hre.ethers.constants.AddressZero);
+
         let requiredAmount = (await campaignReader.getHxtoRequirement(deployer.address, "0")).toString();
 
         await campaign.claim(deployer.address);
@@ -163,8 +185,8 @@ describe("Campaign", async () => {
         // Root user info check
         const rootUserInfo = await campaign.userInfo(deployer.address);
 
-        expect(rootUserInfo.referralHxtoAmount.toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
         expect(rootUserInfo.referralHxtoDebt.toString()).to.equal(rootUserInfo.referralHxtoAmount.toString());
+        expect(rootUserInfo.referralHxtoAmount.toString()).to.equal((BigInt(await campaign.directReferralHxtoAmount()) * BigInt(3) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
     });
 
     it("should revert if the minimum campaign time is not over", async () => {

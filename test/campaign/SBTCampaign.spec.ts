@@ -21,13 +21,14 @@ describe("Campaign", async () => {
     let NFTCampaign;
     let baseNFT;
     let NFTSocialAction;
+    let NFTCapReader;
 
     const defaultLinkBytes = "0x44454641554c5400000000000000000000000000000000000000000000000000";
 
     before(async () => {
         [deployer, user1, user2, user3, user4] = await hre.ethers.getSigners();
 
-        ({ hxto, esHXTO, staker, NFTCampaignReader, timelock, baseNFT, NFTSocialAction, NFTCampaign } = await hextopusProtocolFixture());
+        ({ hxto, esHXTO, staker, NFTCampaignReader, timelock, baseNFT, NFTSocialAction, NFTCampaign, NFTCapReader } = await hextopusProtocolFixture());
 
         // Campaign setting
         await timelock.setCampaignManager(NFTCampaign.address, deployer.address, true);
@@ -108,14 +109,17 @@ describe("Campaign", async () => {
     });
 
     it("checks root user's claim amount", async () => {
+        await NFTCapReader.editNFTUtil(0, 0);
+
         await NFTSocialAction.setFulfilled(user3.address);
 
         await NFTCampaign.participate(deployer.address, user3.address, defaultLinkBytes, hre.ethers.constants.AddressZero);
-
+        
         await NFTCampaign.claim(deployer.address);
-
+        
         // Root user info check
         const rootUserInfo = await NFTCampaign.userInfo(deployer.address);
+        console.log("rootUserInfo.referralHxtoAmount.toString()", rootUserInfo.referralHxtoAmount.toString());
 
         expect(rootUserInfo.referralHxtoAmount.toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await NFTCampaign.indirectReferralHxtoAmount())).toString());
         expect(rootUserInfo.referralHxtoDebt.toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2)).toString());
@@ -123,7 +127,27 @@ describe("Campaign", async () => {
         expect(BigInt(await esHXTO.balanceOf(deployer.address)).toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2)).toString());
     });
 
+    it("checks root user's claim amount with NFT", async () => {
+        await NFTCapReader.editNFTUtil(0, 3);
+
+        await NFTCampaign.claim(deployer.address);
+
+        // Root user info check
+        const rootUserInfo = await NFTCampaign.userInfo(deployer.address);
+
+        expect(rootUserInfo.referralHxtoAmount.toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+        expect(rootUserInfo.referralHxtoDebt.toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+
+        expect(BigInt(await esHXTO.balanceOf(deployer.address)).toString()).to.equal((BigInt(await NFTCampaign.directReferralHxtoAmount()) * BigInt(2) + BigInt(await campaign.indirectReferralHxtoAmount())).toString());
+    });
+
     it("checks root user's additional cap by staking", async () => {
+        await NFTCapReader.editNFTUtil(0, 0);
+
+        await NFTSocialAction.setFulfilled(user4.address);
+
+        await NFTCampaign.participate(deployer.address, user4.address, defaultLinkBytes, hre.ethers.constants.AddressZero);
+
         let requiredAmount = (await NFTCampaignReader.getHxtoRequirement(deployer.address, "0")).toString();
         
         await NFTCampaign.claim(deployer.address);

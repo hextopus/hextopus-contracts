@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.6;
 
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-
 import "../interfaces/IERC20.sol";
 import "../interfaces/IAction.sol";
 import "../interfaces/ICapReader.sol";
+import "../interfaces/INFTCapReader.sol";
 import "../interfaces/IVester.sol";
 import "../interfaces/IHXTO.sol";
 import "../interfaces/IBaseNFT.sol";
@@ -22,11 +21,10 @@ contract BaseNFTCampaign {
     IHXTO public hxto;
     IHXTO public esHxto;
 
-    IERC721 public SBT;
-
     IVester public vester;
     IStaker public staker;
     ICapReader public capReader;
+    INFTCapReader public NFTCapReader;
 
     address public treasury;
 
@@ -66,7 +64,7 @@ contract BaseNFTCampaign {
 
     // Event
     event Participate(bytes32 link, address account, address referral);
-    event ClaimAll(address account, uint256 esHxtoAmount);
+    event Claim(address account, uint256 esHxtoAmount);
     event AddRewards(uint256 initialHxtoAmount);
     event RemoveReward(uint256 hxtoAmount);
 
@@ -93,7 +91,7 @@ contract BaseNFTCampaign {
     function initialize(bytes memory _config, bytes memory _tokenConfig) external {
         require(address(rewardNFT) == address(0), "BaseNFTCampaign: already initialized");
 
-        (rewardNFT, action, owner, isWhiteListCampaign, minimumRequirement, SBT) = abi.decode(_config, (IBaseNFT, IAction, address,  bool, uint256, IERC721));
+        (rewardNFT, action, owner, isWhiteListCampaign, minimumRequirement, NFTCapReader) = abi.decode(_config, (IBaseNFT, IAction, address,  bool, uint256, INFTCapReader));
         (hxto, esHxto, vester, staker, capReader, treasury) = abi.decode(_tokenConfig, (IHXTO, IHXTO, IVester, IStaker, ICapReader, address));
     }
 
@@ -199,7 +197,7 @@ contract BaseNFTCampaign {
             esHxto.transfer(account, esHxtoAmount);
         }
 
-        emit ClaimAll(account, esHxtoAmount);
+        emit Claim(account, esHxtoAmount);
 
         return esHxtoAmount;
     }
@@ -240,15 +238,13 @@ contract BaseNFTCampaign {
 
     /// @notice Basically campaign base reward cap is direct hxto reward * 2
     function baseRewardCap(address account) public view returns (uint256){
-        if(address(SBT) != address(0)){
-            if(SBT.balanceOf(account) != 0){
-                return directReferralHxtoAmount * 3;
-            }else {
-                return directReferralHxtoAmount * 2;
-            }
-        }else{
-            return directReferralHxtoAmount * 2;
+        uint256 multiplier = NFTCapReader.getNFTMultiplier(account);
+
+        if(multiplier > 2){
+            return directReferralHxtoAmount * multiplier;
         }
+
+        return directReferralHxtoAmount * 2;
     }
 }
 
