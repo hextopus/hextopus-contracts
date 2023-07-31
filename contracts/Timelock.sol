@@ -3,8 +3,8 @@ pragma solidity ^0.8.6;
 
 import "./interfaces/ITimelock.sol";
 import "./interfaces/IBaseCampaign.sol";
+import "./interfaces/IBaseLockupCampaign.sol";
 import "./interfaces/IBaseNFTCampaign.sol";
-import "./interfaces/IBaseContest.sol";
 
 contract Timelock is ITimelock {
     uint256 public constant MAX_BUFFER = 5 days;
@@ -54,6 +54,30 @@ contract Timelock is ITimelock {
     function setCampaignManager(address _campaign, address _manager, bool _isActive) external onlyAdmin {
         isManager[_campaign][_manager] = _isActive;
         campaignManagers[_campaign].push(_manager);
+    }
+
+    function signalSetIsClaimable(address _campaign, bool _isClaimable) external onlyManager(_campaign) {
+        bytes32 action = keccak256(abi.encodePacked("setIsClaimable", _campaign, _isClaimable));
+        _setPendingAction(action);
+        signedActions[msg.sender][action] = true;
+    }
+
+    function signSetIsClaimable(address _campaign, bool _isClaimable) external onlyManager(_campaign) {
+        bytes32 action = keccak256(abi.encodePacked("setIsClaimable", _campaign, _isClaimable));
+        require(pendingActions[action] != 0, "Timelock: action not signalled");
+        require(!signedActions[msg.sender][action], "Timelock: already signed");
+        signedActions[msg.sender][action] = true;
+        emit SignAction(msg.sender, action);
+    }
+
+    function setIsClaimable(address _campaign, bool _isClaimable) external onlyManager(_campaign) {
+        bytes32 action = keccak256(abi.encodePacked("setIsClaimable", _campaign, _isClaimable));
+        _validateAction(action);
+        _validateAuthorization(_campaign, action);
+
+        IBaseLockupCampaign(_campaign).setIsClaimable(
+            _isClaimable
+        );
     }
 
     function signalSetExitTrigger(address _campaign, bool _isExit, address _exitReceiver) external onlyManager(_campaign) {
