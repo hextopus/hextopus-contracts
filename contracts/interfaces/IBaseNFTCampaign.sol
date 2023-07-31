@@ -11,9 +11,7 @@ interface IBaseNFTCampaign {
 
     function campaignStart() external view returns (uint256);
 
-    function setDeposit(uint256, uint256) external;
     function isExit() external view returns (bool);
-    function depositLockPeriod() external view returns (uint256);
 
     function userInfo(address) external view returns(UserInfo memory);
     
