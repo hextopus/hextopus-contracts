@@ -195,7 +195,7 @@ contract BaseLockupCampaign {
 
     /// @notice Claim referral reward
     /// @param account address of account
-    function claimReferralReward(address account) external returns (uint256){
+    function claim(address account) external returns (uint256){
         UserInfo storage userCampaignInfo = userInfo[account];
 
         uint256 esHxtoAmount;

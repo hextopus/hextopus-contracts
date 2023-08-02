@@ -38,6 +38,6 @@ interface IBaseLockupCampaign {
 
     function participate(address, address, bytes32, bytes memory) external;
     
-    function claimReferralReward(address) external returns(uint256);
+    function claim(address) external returns(uint256);
     function claimParticipationReward(address) external returns(uint256);
 }

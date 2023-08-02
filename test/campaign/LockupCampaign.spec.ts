@@ -145,7 +145,7 @@ describe("Campaign", async () => {
 
         expect((afterClaimParticipationReward - beforeClaimParticipationReward)).to.equal((await lockupCampaign.participationRewardTokenAmount()));
 
-        await lockupCampaign.claimReferralReward(deployer.address);
+        await lockupCampaign.claim(deployer.address);
 
         // Root user info check
         const rootUserInfo = await lockupCampaign.userInfo(deployer.address);
@@ -185,7 +185,7 @@ describe("Campaign", async () => {
     });
 
     it("calls claim through direct referral after exiting", async () => {
-        await lockupCampaign.claimReferralReward(user1.address);
+        await lockupCampaign.claim(user1.address);
 
         // Direct user info check
         const directUserInfo = await lockupCampaign.userInfo(user1.address);
