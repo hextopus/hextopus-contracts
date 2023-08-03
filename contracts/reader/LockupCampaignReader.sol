@@ -93,7 +93,7 @@ contract LockupCampaignReader is Ownable{
         return rewardInfo;
     }
 
-    function getCampaignUserInfo(address account, uint256 index) public view returns(UserInfo memory userInfo){
+    function getCampaignReferralRewardInfo(address account, uint256 index) public view returns(UserInfo memory userInfo){
         IBaseLockupCampaign campaign = campaigns[index];
 
         IBaseLockupCampaign.UserInfo memory userCampaignInfo = campaign.userInfo(account);
