@@ -28,10 +28,7 @@ interface IBaseLockupCampaign {
     function setIsClaimable(bool) external;
 
     function participationRewardTokenAmount() external view returns (uint256);
-    function participationHxtoAmount() external view returns (uint256);
-    function directReferralRewardTokenAmount() external view returns (uint256);
     function directReferralHxtoAmount() external view returns (uint256);
-    function indirectReferralRewardTokenAmount() external view returns (uint256);
     function indirectReferralHxtoAmount() external view returns (uint256);
 
     function initialize(bytes memory, bytes memory) external;
